@@ -2,8 +2,9 @@
 python-dotenv
 pyrogram~=2.0
 tgcrypto
-PyTgCalls==3.0.0-alpha.2
-PyAV
+PyTgCalls==3.0.0.dev24
+py-tgcalls
+git+https://github.com/PyAV-Org/PyAV.git
 
 # AI and Speech Processing
 openai
