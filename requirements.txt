@@ -1,0 +1,16 @@
+# Core libraries for Telegram and Voice Calls
+python-dotenv
+pyrogram~=2.0
+tgcrypto
+PyTgCalls==3.0.0-alpha.2
+PyAV
+
+# AI and Speech Processing
+openai
+gTTS
+SpeechRecognition
+
+# For production deployment (optional for local testing)
+# redis
+# psycopg2-binary
+# uvloop
