@@ -1,64 +1,60 @@
 import os
-import asyncio
 import logging
 from dotenv import load_dotenv
-
 from pyrogram import Client
-from pytgcalls import PyTgCalls
-
 from assistant.bot.handlers import add_handlers
-from assistant.voice.processing import add_voice_handlers
+# Import the new initializer function
+from assistant.session.manager import initialize_caller
 
-# --- Configuration ---
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
+
+# Load environment variables from .env file
 load_dotenv()
 
-# --- Initialize Clients ---
-API_ID = os.getenv("API_ID")
-API_HASH = os.getenv("API_HASH")
-BOT_TOKEN = os.getenv("BOT_TOKEN")
+# --- ADD THIS DEBUGGING LINE ---
+print(f"BOT_TOKEN loaded: {os.getenv('BOT_TOKEN')}")
+# -------------------------------
 
-app = Client(
-    "private_session_bot",
-    api_id=API_ID,
-    api_hash=API_HASH,
-    bot_token=BOT_TOKEN
-)
-
-pytgcalls = PyTgCalls(app)
+API_ID = os.getenv('API_ID')
+API_HASH = os.getenv('API_HASH')
+BOT_TOKEN = os.getenv('BOT_TOKEN')
 
 
+# Main application entry point
 async def main():
-    """Main function to start the bot and voice client."""
-    logger.info("Starting AI Voice Assistant...")
-    
+    # Initialize the Pyrogram client
+    app = Client(
+        "live_callbot",
+        api_id=API_ID,
+        api_hash=API_HASH,
+        bot_token=BOT_TOKEN
+    )
+
+    # Initialize the global TgCaller instance
+    initialize_caller(app)
+
     # Add command and message handlers
-    add_handlers(app, pytgcalls)
-    
-    # Add voice stream and event handlers
-    add_voice_handlers(pytgcalls)
-    
+    add_handlers(app)
+
+    # Start the bot
     try:
         await app.start()
-        await pytgcalls.start()
-        
-        bot_info = await app.get_me()
-        logger.info(f"Bot @{bot_info.username} started successfully!")
-        
-        # Keep the application running indefinitely
-        await asyncio.Event().wait()
-        
+        logger.info(f"Bot @{(await app.get_me()).username} started successfully!")
+        logger.info("Ready to create private sessions. Send /session to the bot.")
+        # Keep the bot running indefinitely
+        while True:
+            await asyncio.sleep(3600)
     except Exception as e:
-        logger.error(f"An error occurred during startup: {e}", exc_info=True)
+        logger.error(f"An error occurred during bot startup: {e}", exc_info=True)
     finally:
-        logger.info("Shutting down...")
-        await pytgcalls.stop()
         await app.stop()
-
+        logger.info("Bot stopped.")
 
 if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except (KeyboardInterrupt, SystemExit):
-        logger.info("Shutdown requested by user.")
+    import asyncio
+    asyncio.run(main())
